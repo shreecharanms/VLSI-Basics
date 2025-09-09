@@ -1,0 +1,19 @@
+module test;
+wire[2:0] light;
+reg clk;
+
+cyclic_lamp dut(clk,light);
+
+initial begin
+  clk = 0; end
+always #5 clk = ~clk;
+
+always @(posedge clk) begin
+
+$monitor("Time = %d Light = %b", $time, light);
+end
+initial begin
+$dumpfile("lights.vcd");
+$dumpvars(0,cyclic_lamp);
+ #200 $finish; end
+endmodule
