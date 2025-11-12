@@ -1,3 +1,5 @@
+// Author - Shirhcran MS
+// Detects continuosly for even(0) or odd(1) parity
 module parity_checker(x,clk,z);
 input clk,x;
 output reg z;
