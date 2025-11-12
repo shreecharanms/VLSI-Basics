@@ -1,4 +1,6 @@
-module sequence_detector(x,clk,out); //Detects the sequence "01101"
+//Author - Shricharn MS
+//Detects the sequence "01101"
+module sequence_detector(x,clk,out); 
  input x,clk;
  output reg out;
  reg[2:0] state;
