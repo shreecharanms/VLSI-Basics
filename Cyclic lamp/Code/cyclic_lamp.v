@@ -1,3 +1,4 @@
+// Author - Shicharan MS
 // module generates traffic light R G Y one after the other with a clock pulse
 
 module cyclic_lamp(light, clk);
