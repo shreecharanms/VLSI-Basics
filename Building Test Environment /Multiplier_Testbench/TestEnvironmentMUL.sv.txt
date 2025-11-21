@@ -1,0 +1,113 @@
+
+class generator;
+  
+  mailbox #(transaction) mbx;
+  transaction trans;
+  int i=0;
+  event done;
+  
+  function new(mailbox #(transaction) mbx);
+    this.mbx = mbx;
+    trans = new();
+  endfunction
+  
+  task run();
+    
+    for(i=0;i<10;i++) begin
+      
+      if(!trans.randomize()) begin
+        $display("Randomisation error");
+      end
+      $display("Data sent");
+      mbx.put(trans.copy);
+      #20;
+    end
+    -> done;
+  endtask
+endclass
+
+///// Interface
+
+interface mul_aif;
+  logic [3:0] a,b;
+  logic [7:0] mul;
+  logic clk;
+endinterface
+
+
+//// Driver class
+
+class driver;
+  
+  virtual mul_aif aif; /// instance of interface in driver
+  mailbox #(transaction) mbx; 
+  transaction data;
+  
+  function new(mailbox #(transaction) mbx);
+    this.mbx = mbx;
+  endfunction
+  
+  task run();
+    
+    forever begin
+      mbx.get(data);
+      @(posedge aif.clk);
+      
+      aif.a <= data.a;
+      aif.b <= data.b; //// Sending recieved data to interface
+      $display("Data recieved");
+    end
+  endtask
+endclass
+
+
+///// Test bench
+
+module tb;
+  
+  mul_aif aif();
+  
+  mailbox #(transaction) mbx; 
+  driver drv;
+  generator gen;
+  
+  top dut ( .a(aif.a), .b(aif.b), .mul(aif.mul), .clk(aif.clk));
+  
+  initial begin
+    aif.clk = 0;
+  end
+  
+  always #10 aif.clk = ~aif.clk; // Clock generattion
+  
+  initial begin
+    
+    mbx = new();
+    drv = new(mbx);
+    gen = new(mbx);
+    
+    drv.aif = aif;
+    
+  end
+  
+  initial begin
+    
+    fork
+      
+      gen.run();
+      drv.run();
+      
+    join_none
+    
+    wait(gen.done.triggered);
+    $finish(); /// Call finsh once done
+  end 
+  
+ initial begin
+   $dumpfile("dump.vcd");
+   $dumpvars;
+   wait(gen.done.triggered);
+   $display("DONE");
+   $finish();
+ end
+  
+endmodule
